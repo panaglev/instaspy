@@ -1,0 +1,3 @@
+usernames: ["travisscott", "jlo"]
+storage_path: "../../pkg/storage/storage.db"
+download_path: "../../images/"
