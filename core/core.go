@@ -15,6 +15,9 @@ type seleniumRemote struct {
 func EstablishRemote() (*seleniumRemote, error) {
 	const op = "core.EstablishRemote"
 
+	/*
+		docker run -d -p 4444:4444 -e SE_NODE_SESSION_TIMEOUT=1000 --shm-size="4g" --name selenium-server selenium/standalone-chrome
+	*/
 	caps := selenium.Capabilities{
 		"browserName": "chrome",
 		"chromeOptions": map[string]interface{}{ // Some speed improvments, I don't know what are they doing
@@ -44,13 +47,13 @@ func (s *seleniumRemote) Quit() {
 	s.remote.Quit()
 }
 
-func (s *seleniumRemote) Job(username string) ([]string, error) {
+func (s *seleniumRemote) Job(username string) ([]string, []string, error) {
 	const op = "core.Job"
 
 	pageUrl := fmt.Sprintf("https://instanavigation.com/ru/user-profile/%s", username)
 	err := s.remote.Get(pageUrl)
 	if err != nil {
-		return []string{}, fmt.Errorf("Error getting page by URL at %s: %w", op, err)
+		return []string{}, []string{}, fmt.Errorf("Error getting page by URL at %s: %w", op, err)
 	}
 
 	pageSource, err := s.remote.PageSource()
@@ -62,12 +65,12 @@ func (s *seleniumRemote) Job(username string) ([]string, error) {
 		*/
 		s.remote.Quit() // - Quick solution. I guess you have to return control and try one more time
 		// Maybe even reccurcive call 5 times, for example.
-		return []string{}, fmt.Errorf("Error getting page source at %s: %w", op, err)
+		return []string{}, []string{}, fmt.Errorf("Error getting page source at %s: %w", op, err)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(pageSource))
 	if err != nil {
-		return []string{}, fmt.Errorf("Error getting page info at %s: %w", op, err)
+		return []string{}, []string{}, fmt.Errorf("Error getting page info at %s: %w", op, err)
 	}
 
 	imageLinks := []string{}
@@ -92,6 +95,20 @@ func (s *seleniumRemote) Job(username string) ([]string, error) {
 		protecting from selenium so we have to change user-agent
 		TODO: add video grabbing
 
+		!!this uses instanavigator!!
+		fmt.Println(doc.Find(".story-video video[src]"))
+		doc.Find(".story-video video[src]").Each(func(i int, img *goquery.Selection) {
+			src, exists := img.Attr("src")
+			if exists {
+				videoLinks = append(videoLinks, src)
+			} else {
+				fmt.Println("src attribute not found for image.")
+			}
+		})
+
+
+
+		!!this uses iagony!!
 		videoLinks := []string{}
 		doc.Find(".lazyload-wrapper ").Each(func(i int, element *goquery.Selection) {
 			html, _ := element.Html()
@@ -107,5 +124,5 @@ func (s *seleniumRemote) Job(username string) ([]string, error) {
 		fmt.Println("Video Links:", videoLinks)
 	*/
 
-	return imageLinks, nil
+	return imageLinks, nil, nil
 }
