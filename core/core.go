@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"instaspy/src/logger"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -33,9 +34,10 @@ func EstablishRemote() (*seleniumRemote, error) {
 			},
 		},
 	}
-	wd, err := selenium.NewRemote(caps, "http://192.168.1.2:4444/wd/hub") // Change to address of container in docker-compose
+	wd, err := selenium.NewRemote(caps, "http://192.168.1.3:4444/wd/hub") // Change to address of container in docker-compose
 	if err != nil {
-		return &seleniumRemote{}, fmt.Errorf("Failed to connect to Selenium server %s: %w\n", op, err)
+		logger.HandleOpError(op, err)
+		return &seleniumRemote{}, err
 	}
 
 	return &seleniumRemote{remote: wd}, nil
@@ -63,7 +65,7 @@ func (s *seleniumRemote) Job(username string) ([]string, []string, error) {
 			unexpected alert open: unexpected alert open: {Alert text : Профиль не был найден. Попробуйте перезагрузить страницу!}
 			(Session info: chrome=114.0.5735.133)exit status 1
 		*/
-		s.remote.Quit() // - Quick solution. I guess you have to return control and try one more time
+		s.Quit() // - Quick solution. I guess you have to return control and try one more time
 		// Maybe even reccurcive call 5 times, for example.
 		return []string{}, []string{}, fmt.Errorf("Error getting page source at %s: %w", op, err)
 	}

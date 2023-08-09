@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+	"instaspy/src/logger"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -11,7 +12,6 @@ type Storage struct {
 	db *sql.DB
 }
 
-// To store: username, picture hash, picture name, have been sent to telegram
 type FileInfo struct {
 	Id           int
 	Username     string
@@ -21,16 +21,17 @@ type FileInfo struct {
 }
 
 func New(storagePath string) (*Storage, error) {
-	const op = "pkg.storage.New"
+	const op = "src.storage.New"
 
 	db, err := sql.Open("sqlite3", storagePath)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		logger.HandleOpError(op, err)
+		return nil, err
 	}
 
 	stmt, err := db.Prepare(`
 	CREATE TABLE IF NOT EXISTS info(
-		id SERIAL PRIMARY KEY,
+		id INTEGER PRIMARY KEY,
 		username TEXT NOT NULL,
 		hash TEXT NOT NULL,
 		picture_name INTEGER NOT NULL,
@@ -38,19 +39,29 @@ func New(storagePath string) (*Storage, error) {
 	`)
 
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		logger.HandleOpError(op, err)
+		db.Close()
+		return nil, err
 	}
 
 	_, err = stmt.Exec()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		logger.HandleOpError(op, err)
+		db.Close()
+		return nil, err
 	}
 
 	return &Storage{db: db}, nil
 }
 
+func (s *Storage) Close() {
+	const op = "src.storage.Close"
+
+	s.Close()
+}
+
 func (s *Storage) AddInfo(fileInfo FileInfo) (int, error) {
-	const op = "pkg.storage.AddInfo"
+	const op = "src.storage.AddInfo"
 
 	stmtInsert, err := s.db.Prepare("INSERT INTO info(username, hash, picture_name, havesent) VALUES(?, ?, ?, ?)")
 	if err != nil {
@@ -85,3 +96,21 @@ func (s *Storage) CheckHash(hash string) int {
 		return 200
 	}
 }
+
+//func (s *Storage) ReturnInfoToSend() (string, int) {
+//	const op = "src.storage.ReturnInfoToSend"
+//
+//	stmt, err := s.db.Prepare("SELECT id, username, picture_name FROM info WHERE havesent = 0 LIMIT 1")
+//	if err != nil {
+//		return "", 0
+//	}
+//
+//	var username string
+//	var fileName int
+//	err = stmt.QueryRow().Scan(&username, &fileName)
+//	if err != nil {
+//		return "", 0
+//	}
+//
+//	return username, fileName
+//}

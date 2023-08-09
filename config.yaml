@@ -1,3 +1,5 @@
 usernames: ["travisscott", "jlo"]
 storage_path: "../../src/storage/storage.db"
 download_path: "../../images/"
+telegram_bot: null
+chat_id: null
