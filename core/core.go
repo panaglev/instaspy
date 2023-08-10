@@ -13,6 +13,8 @@ type seleniumRemote struct {
 	remote selenium.WebDriver
 }
 
+// Establish remote connection to
+// Selenium image
 func EstablishRemote() (*seleniumRemote, error) {
 	const op = "core.EstablishRemote"
 
@@ -43,19 +45,23 @@ func EstablishRemote() (*seleniumRemote, error) {
 	return &seleniumRemote{remote: wd}, nil
 }
 
+// Correct terminate selenium session
+// Still need fix for SIGENV
 func (s *seleniumRemote) Quit() {
 	const op = "core.Close"
 
 	s.remote.Quit()
 }
 
+// Load page -> save source code -> extract history links
 func (s *seleniumRemote) Job(username string) ([]string, []string, error) {
 	const op = "core.Job"
 
 	pageUrl := fmt.Sprintf("https://instanavigation.com/ru/user-profile/%s", username)
 	err := s.remote.Get(pageUrl)
 	if err != nil {
-		return []string{}, []string{}, fmt.Errorf("Error getting page by URL at %s: %w", op, err)
+		logger.HandleOpError(op, err)
+		return []string{}, []string{}, err
 	}
 
 	pageSource, err := s.remote.PageSource()
@@ -67,12 +73,14 @@ func (s *seleniumRemote) Job(username string) ([]string, []string, error) {
 		*/
 		s.Quit() // - Quick solution. I guess you have to return control and try one more time
 		// Maybe even reccurcive call 5 times, for example.
-		return []string{}, []string{}, fmt.Errorf("Error getting page source at %s: %w", op, err)
+		logger.HandleOpErrorWithComment(op, err, "Profile might 1. not exists 2. can't be accessed right now")
+		return []string{}, []string{}, err
 	}
 
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(pageSource))
 	if err != nil {
-		return []string{}, []string{}, fmt.Errorf("Error getting page info at %s: %w", op, err)
+		logger.HandleOpError(op, err)
+		return []string{}, []string{}, err
 	}
 
 	imageLinks := []string{}
@@ -82,8 +90,6 @@ func (s *seleniumRemote) Job(username string) ([]string, []string, error) {
 		dataSrc, exists := img.Attr("data-src")
 		if exists {
 			imageLinks = append(imageLinks, dataSrc)
-		} else {
-			fmt.Println("data-src attribute not found for image.")
 		}
 	})
 
@@ -107,8 +113,6 @@ func (s *seleniumRemote) Job(username string) ([]string, []string, error) {
 				fmt.Println("src attribute not found for image.")
 			}
 		})
-
-
 
 		!!this uses iagony!!
 		videoLinks := []string{}

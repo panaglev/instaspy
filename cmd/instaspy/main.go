@@ -46,30 +46,42 @@ func main() {
 	defer conn.Quit()
 
 	// Parse pictures and save them
-	for _, username := range cfg.Usernames {
-		pic, _, err := conn.Job(username)
-		if err != nil {
-			logger.HandleOpError(op, err)
-			logrus.Fatal(err)
-		}
-
-		for _, image := range pic {
-			fileInfo, err := save.Image(username, image, db)
+	for {
+		for _, username := range cfg.Usernames {
+			pic, _, err := conn.Job(username)
 			if err != nil {
 				logger.HandleOpError(op, err)
-				logrus.Fatal(err)
+				// If parse attempt not successfull -> continue or repeat?
+				continue
 			}
 
-			if fileInfo.Hash == "dont" {
-				continue
-			} else {
-				res, _ := db.AddInfo(fileInfo)
-				telegram.SendMessage(username, cfg.TelegramBotToken, cfg.ChatID, fileInfo.Picture_name)
-				if res != 200 {
-					fmt.Printf("%s: %s", op, err)
-					os.Exit(1)
+			for _, image := range pic {
+				fileInfo, err := save.Image(username, image, db)
+				if err != nil {
+					logger.HandleOpError(op, err)
+					continue
+				}
+
+				if fileInfo.Hash == "" {
+					continue
+				} else {
+					err = db.AddInfo(fileInfo)
+					if err != nil {
+						logger.HandleOpError(op, err)
+						// just realized that if I already downlaoded image and not added info about it might have a copy
+						// I should fix logic i guess...
+						break
+					}
+					err = telegram.SendPicture(username, fileInfo.Picture_name, cfg.TelegramBotToken, cfg.ChatID)
+					if err != nil {
+						logger.HandleOpError(op, err)
+					}
 				}
 			}
 		}
+		fmt.Println("Я спать пошел. Снов <3")
+		time.Sleep(10 * time.Minute)
 	}
+	// Naebnulsya message
+	logger.HandleOpErrorTelegramMessage(op, err)
 }

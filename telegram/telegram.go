@@ -3,29 +3,28 @@ package telegram
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/sirupsen/logrus"
 )
 
-func SendMessage(username, telegram_token, chat_id string, filename int) {
-	const op = "telegram.SendMessage"
+func SendPicture(username, filename, telegram_token, chat_id string) error {
+	const op = "telegram.SendPicture"
 
 	bot, err := tgbotapi.NewBotAPI(telegram_token)
 	if err != nil {
-		log.Panic(err)
+		logrus.Errorf("Error at %s: %s", op, err)
+		return err
 	}
-
-	bot.Debug = true
 
 	chatID, err := strconv.Atoi(chat_id)
 	if err != nil {
-		fmt.Println("Не удалось преобразовать чатайди к инту")
-		panic(1)
+		logrus.Errorf("Error at %s: %s", op, err)
+		return err
 	}
 
-	filePath := fmt.Sprintf("/Users/panaglev/Desktop/golang/instaspy/images/%s/%d.jpg", username, filename)
+	filePath := fmt.Sprintf("/Users/panaglev/Desktop/golang/instaspy/images/%s/%s.jpg", username, filename)
 	data, _ := ioutil.ReadFile(filePath)
 	b := tgbotapi.FileBytes{Name: "picture", Bytes: data}
 	message := tgbotapi.NewPhoto(int64(chatID), b)
@@ -33,6 +32,29 @@ func SendMessage(username, telegram_token, chat_id string, filename int) {
 
 	_, err = bot.Send(message)
 	if err != nil {
-		log.Panic(err)
+		logrus.Errorf("Error at %s: %s", op, err)
+		return err
 	}
+	return nil
+}
+
+func SendMessage(message, telegram_token, chat_id string) error {
+	const op = "telegram.SendMessage"
+
+	bot, err := tgbotapi.NewBotAPI(telegram_token)
+	if err != nil {
+		logrus.Errorf("Error at %s: %s", op, err)
+		return err
+	}
+
+	chatID, err := strconv.Atoi(chat_id)
+	if err != nil {
+		logrus.Errorf("Error at %s: %s", op, err)
+		return err
+	}
+
+	msg := tgbotapi.NewMessage(int64(chatID), message)
+
+	_, err = bot.Send(msg)
+	return err
 }

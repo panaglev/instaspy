@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"database/sql"
-	"fmt"
 	"instaspy/src/logger"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -16,7 +15,7 @@ type FileInfo struct {
 	Id           int
 	Username     string
 	Hash         string
-	Picture_name int
+	Picture_name string
 	Havesent     int
 }
 
@@ -34,7 +33,7 @@ func New(storagePath string) (*Storage, error) {
 		id INTEGER PRIMARY KEY,
 		username TEXT NOT NULL,
 		hash TEXT NOT NULL,
-		picture_name INTEGER NOT NULL,
+		picture_name TEXT NOT NULL,
 		havesent INTEGER NOT NULL);
 	`)
 
@@ -60,40 +59,49 @@ func (s *Storage) Close() {
 	s.Close()
 }
 
-func (s *Storage) AddInfo(fileInfo FileInfo) (int, error) {
+func (s *Storage) AddInfo(fileInfo FileInfo) error {
 	const op = "src.storage.AddInfo"
 
-	stmtInsert, err := s.db.Prepare("INSERT INTO info(username, hash, picture_name, havesent) VALUES(?, ?, ?, ?)")
+	stmt, err := s.db.Prepare("INSERT INTO info(username, hash, picture_name, havesent) VALUES(?, ?, ?, ?)")
 	if err != nil {
-		return 400, fmt.Errorf("Error preparing query to insert info at %s: %w", op, err)
+		logger.HandleOpError(op, err)
+		return err
 	}
 
-	_, err = stmtInsert.Exec(fileInfo.Username, fileInfo.Hash, fileInfo.Picture_name, 0)
+	_, err = stmt.Exec(fileInfo.Username, fileInfo.Hash, fileInfo.Picture_name, 0)
 	if err != nil {
-		return 400, fmt.Errorf("Error executing query to insert info at %s: %w", op, err)
+		logger.HandleOpError(op, err)
+		return err
 	}
 
-	return 200, nil
+	return nil
 }
 
-func (s *Storage) CheckHash(hash string) int {
-	const op = "src.storage.ChechHash"
+func (s *Storage) CheckHash(hash string) (bool, error) {
+	const op = "src.storage.CheckHash"
 
+	// Prepare query
 	stmtExists, err := s.db.Prepare("SELECT COUNT(*) FROM info WHERE hash = ?")
 	if err != nil {
-		return 400
+		logger.HandleOpError(op, err)
+		return false, err
 	}
 
+	// Counter var
 	var count int
+
+	// Execute statement
 	err = stmtExists.QueryRow(hash).Scan(&count)
 	if err != nil {
-		return 400
+		return false, err
 	}
 
+	// If counter > 0 -> already in db
 	if count > 0 {
-		return 409 //Object exists
+		return true, nil
+		// Else not in db
 	} else {
-		return 200
+		return false, nil
 	}
 }
 
