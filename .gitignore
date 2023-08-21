@@ -3,3 +3,4 @@ src/storage/storage.db
 images/*
 !images/.gitkeep
 cmd/instaspy/app.log
+.env

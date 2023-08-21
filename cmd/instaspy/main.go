@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"instaspy/core"
 	"instaspy/src/config"
 	"instaspy/src/logger"
@@ -18,6 +17,7 @@ func main() {
 	const op = "cmd.instaparser.main"
 
 	cfg := config.MustLoad()
+	logger.HandleOpTelegramMessage(op, "Config loaded")
 
 	// Setting logger up to write in file
 	logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -25,16 +25,19 @@ func main() {
 		// Set output logger file
 		logrus.SetOutput(logFile)
 	}
+	logger.HandleOpTelegramMessage(op, "Logger set")
 	defer logFile.Close()
 
 	// Label application start
 	logrus.Info("Starting ExBestFriend at %s", time.Now())
+	logger.HandleOpTelegramMessage(op, "Starting EeBestFriend")
 
 	// Connection to database
 	db, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
 		logrus.Fatalf("DB connection failed at %s: %w", op, err)
 	}
+	logger.HandleOpTelegramMessage(op, "Db connection")
 	//defer db.Close() - if uncomment - huge error stacktrace in terminal
 
 	// Application core
@@ -43,6 +46,7 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("Failed connect to selenium at %s: %w", op, err)
 	}
+	logger.HandleOpTelegramMessage(op, "Connect to selenium server")
 	defer conn.Quit()
 
 	// Parse pictures and save them
@@ -79,7 +83,6 @@ func main() {
 				}
 			}
 		}
-		fmt.Println("Я спать пошел. Снов <3")
 		time.Sleep(10 * time.Minute)
 	}
 	// Naebnulsya message

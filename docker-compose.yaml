@@ -1,0 +1,31 @@
+version: '3'
+services:
+  exbestfriend:
+    build:
+      context: .
+    container_name: exbestfriend
+    env_file:
+      - .env
+    networks:
+      mynetwork:
+        ipv4_address: 172.18.0.2
+
+  selenium-server:
+    image: selenium/standalone-chrome
+    ports:
+      - "4444:4444"
+    environment:
+      - SE_NODE_SESSION_TIMEOUT=1000
+      - SE_NODE_GRID_REGISTRATION_TIMEOUT=0
+    shm_size: 4g
+    container_name: selenium-server
+    networks:
+      mynetwork:
+        ipv4_address: 172.18.0.3
+
+networks:
+  mynetwork:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.18.0.0/16"

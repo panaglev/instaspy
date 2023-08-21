@@ -26,3 +26,9 @@ func HandleOpErrorTelegramMessage(op string, err error) {
 	preparedMessage := fmt.Sprintf("Hey Boss, I'm down at %s\n\n stacktrace:\n\n %s", op, err)
 	telegram.SendMessage(preparedMessage, cfg.TelegramBotToken, cfg.ChatID)
 }
+
+func HandleOpTelegramMessage(op, message string) {
+	cfg := config.MustLoad()
+	preparedMessage := fmt.Sprintf("%s at %s", message, op)
+	telegram.SendMessage(preparedMessage, cfg.TelegramBotToken, cfg.ChatID)
+}

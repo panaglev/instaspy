@@ -36,7 +36,7 @@ func EstablishRemote() (*seleniumRemote, error) {
 			},
 		},
 	}
-	wd, err := selenium.NewRemote(caps, "http://192.168.1.3:4444/wd/hub") // Change to address of container in docker-compose
+	wd, err := selenium.NewRemote(caps, "http://172.18.0.3:4444/wd/hub") // Change to address of container in docker-compose
 	if err != nil {
 		logger.HandleOpError(op, err)
 		return &seleniumRemote{}, err
