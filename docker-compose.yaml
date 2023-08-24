@@ -17,6 +17,7 @@ services:
     environment:
       - SE_NODE_SESSION_TIMEOUT=1000
       - SE_NODE_GRID_REGISTRATION_TIMEOUT=0
+      - SE_START_VNC=false
     shm_size: 4g
     container_name: selenium-server
     networks:

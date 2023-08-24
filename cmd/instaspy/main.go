@@ -30,12 +30,12 @@ func main() {
 
 	// Label application start
 	logrus.Info("Starting ExBestFriend at %s", time.Now())
-	logger.HandleOpTelegramMessage(op, "Starting EeBestFriend")
+	logger.HandleOpTelegramMessage(op, "Starting ExBestFriend")
 
 	// Connection to database
 	db, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
-		logrus.Fatalf("DB connection failed at %s: %w", op, err)
+		logrus.Fatalf("DB connection failed at %s: %s", op, err)
 	}
 	logger.HandleOpTelegramMessage(op, "Db connection")
 	//defer db.Close() - if uncomment - huge error stacktrace in terminal
@@ -44,7 +44,7 @@ func main() {
 	// Used for connecting to selenium image remotely
 	conn, err := core.EstablishRemote()
 	if err != nil {
-		logrus.Fatalf("Failed connect to selenium at %s: %w", op, err)
+		logrus.Fatalf("Failed connect to selenium at %s: %s", op, err)
 	}
 	logger.HandleOpTelegramMessage(op, "Connect to selenium server")
 	defer conn.Quit()
@@ -86,5 +86,5 @@ func main() {
 		time.Sleep(10 * time.Minute)
 	}
 	// Naebnulsya message
-	logger.HandleOpErrorTelegramMessage(op, err)
+	//logger.HandleOpErrorTelegramMessage(op, err)
 }

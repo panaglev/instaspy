@@ -24,7 +24,7 @@ func SendPicture(username, filename, telegram_token, chat_id string) error {
 		return err
 	}
 
-	filePath := fmt.Sprintf("/Users/panaglev/Desktop/golang/instaspy/images/%s/%s.jpg", username, filename)
+	filePath := fmt.Sprintf("/exbestfriend/images/%s/%s.jpg", username, filename)
 	data, _ := ioutil.ReadFile(filePath)
 	b := tgbotapi.FileBytes{Name: "picture", Bytes: data}
 	message := tgbotapi.NewPhoto(int64(chatID), b)
