@@ -9,11 +9,13 @@ services:
     networks:
       mynetwork:
         ipv4_address: 172.18.0.2
+    mem_limit: 1g
+    memswap_limit: 2g
 
   selenium-server:
     image: selenium/standalone-chrome
     ports:
-      - "4444:4444"
+      - "4444"
     environment:
       - SE_NODE_SESSION_TIMEOUT=1000
       - SE_NODE_GRID_REGISTRATION_TIMEOUT=0
@@ -23,6 +25,8 @@ services:
     networks:
       mynetwork:
         ipv4_address: 172.18.0.3
+    mem_limit: 1g
+    memswap_limit: 2g
 
 networks:
   mynetwork:
