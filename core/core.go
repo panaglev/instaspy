@@ -71,7 +71,8 @@ func (s *seleniumRemote) Job(username string) ([]string, []string, error) {
 			unexpected alert open: unexpected alert open: {Alert text : Профиль не был найден. Попробуйте перезагрузить страницу!}
 			(Session info: chrome=114.0.5735.133)exit status 1
 		*/
-		s.Quit() // - Quick solution. I guess you have to return control and try one more time
+		// s.Quit() - was causing error with selenium id not found
+		//s.Quit() // - Quick solution. I guess you have to return control and try one more time
 		// Maybe even reccurcive call 5 times, for example.
 		logger.HandleOpErrorWithComment(op, err, "Profile might 1. not exists 2. can't be accessed right now")
 		return []string{}, []string{}, err
