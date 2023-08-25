@@ -42,48 +42,59 @@ func main() {
 
 	// Application core
 	// Used for connecting to selenium image remotely
-	conn, err := core.EstablishRemote()
-	if err != nil {
-		logrus.Fatalf("Failed connect to selenium at %s: %s", op, err)
-	}
-	logger.HandleOpTelegramMessage(op, "Connect to selenium server")
-	defer conn.Quit()
 
+	logger.HandleOpTelegramMessage(op, "Start spying")
 	// Parse pictures and save them
 	for {
-		for _, username := range cfg.Usernames {
-			pic, _, err := conn.Job(username)
-			if err != nil {
-				logger.HandleOpError(op, err)
-				// If parse attempt not successfull -> continue or repeat?
-				continue
-			}
+		/* Restart selenium server in each 15 parses cuz
+		Otherwise have this error after ~6 hours of work
+		Error at cmd.instaparser.main: invalid session id:
+		"Unable to execute request for an existing session:
+		Unable to find session with ID: \nBuild info: version: '4.11.0',
+		revision: '040bc5406b'\nSystem info: os.name: 'Linux', os.arch: 'amd64',
+		os.version: '5.15.0-78-generic', java.version: '11.0.20'\nDriver info: driver.version: unknown"
+		*/
+		conn, err := core.EstablishRemote()
+		if err != nil {
+			logrus.Fatalf("Failed connect to selenium at %s: %s", op, err)
+		}
+		defer conn.Quit()
 
-			for _, image := range pic {
-				fileInfo, err := save.Image(username, image, db)
+		for i := 0; i < 15; i++ {
+			for _, username := range cfg.Usernames {
+				pic, _, err := conn.Job(username)
 				if err != nil {
 					logger.HandleOpError(op, err)
+					// If parse attempt not successfull -> continue or repeat?
 					continue
 				}
 
-				if fileInfo.Hash == "" {
-					continue
-				} else {
-					err = db.AddInfo(fileInfo)
+				for _, image := range pic {
+					fileInfo, err := save.Image(username, image, db)
 					if err != nil {
 						logger.HandleOpError(op, err)
-						// just realized that if I already downlaoded image and not added info about it might have a copy
-						// I should fix logic i guess...
-						break
+						continue
 					}
-					err = telegram.SendPicture(username, fileInfo.Picture_name, cfg.TelegramBotToken, cfg.ChatID)
-					if err != nil {
-						logger.HandleOpError(op, err)
+
+					if fileInfo.Hash == "" {
+						continue
+					} else {
+						err = db.AddInfo(fileInfo)
+						if err != nil {
+							logger.HandleOpError(op, err)
+							// just realized that if I already downlaoded image and not added info about it might have a copy
+							// I should fix logic i guess...
+							break
+						}
+						err = telegram.SendPicture(username, fileInfo.Picture_name, cfg.TelegramBotToken, cfg.ChatID)
+						if err != nil {
+							logger.HandleOpError(op, err)
+						}
 					}
 				}
 			}
+			time.Sleep(10 * time.Minute)
 		}
-		time.Sleep(10 * time.Minute)
 	}
 	// Naebnulsya message
 	//logger.HandleOpErrorTelegramMessage(op, err)
