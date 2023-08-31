@@ -104,21 +104,3 @@ func (s *Storage) CheckHash(hash string) (bool, error) {
 		return false, nil
 	}
 }
-
-//func (s *Storage) ReturnInfoToSend() (string, int) {
-//	const op = "src.storage.ReturnInfoToSend"
-//
-//	stmt, err := s.db.Prepare("SELECT id, username, picture_name FROM info WHERE havesent = 0 LIMIT 1")
-//	if err != nil {
-//		return "", 0
-//	}
-//
-//	var username string
-//	var fileName int
-//	err = stmt.QueryRow().Scan(&username, &fileName)
-//	if err != nil {
-//		return "", 0
-//	}
-//
-//	return username, fileName
-//}

@@ -18,13 +18,10 @@ type seleniumRemote struct {
 func EstablishRemote() (*seleniumRemote, error) {
 	const op = "core.EstablishRemote"
 
-	/*
-		docker run -d -p 4444:4444 -e SE_NODE_SESSION_TIMEOUT=1000 --shm-size="4g" --name selenium-server selenium/standalone-chrome
-	*/
 	caps := selenium.Capabilities{
 		"browserName": "chrome",
 		"chromeOptions": map[string]interface{}{ // Some speed improvments, I don't know what are they doing
-			"args": []string{ // TODO(?) Disable VNC
+			"args": []string{
 				"--headless",
 				"--ignore-certificate-errors",
 				"--ignore-ssl-errors",
@@ -36,7 +33,7 @@ func EstablishRemote() (*seleniumRemote, error) {
 			},
 		},
 	}
-	wd, err := selenium.NewRemote(caps, "http://172.18.0.3:4444/wd/hub") // Change to address of container in docker-compose
+	wd, err := selenium.NewRemote(caps, "http://172.18.0.3:4444/wd/hub")
 	if err != nil {
 		logger.HandleOpError(op, err)
 		return &seleniumRemote{}, err
@@ -53,7 +50,6 @@ func (s *seleniumRemote) Quit() {
 	s.remote.Quit()
 }
 
-// Load page -> save source code -> extract history links
 func (s *seleniumRemote) Job(username string) ([]string, []string, error) {
 	const op = "core.Job"
 
@@ -71,8 +67,6 @@ func (s *seleniumRemote) Job(username string) ([]string, []string, error) {
 			unexpected alert open: unexpected alert open: {Alert text : Профиль не был найден. Попробуйте перезагрузить страницу!}
 			(Session info: chrome=114.0.5735.133)exit status 1
 		*/
-		// s.Quit() - was causing error with selenium id not found
-		//s.Quit() // - Quick solution. I guess you have to return control and try one more time
 		// Maybe even reccurcive call 5 times, for example.
 		logger.HandleOpErrorWithComment(op, err, "Profile might 1. not exists 2. can't be accessed right now")
 		return []string{}, []string{}, err

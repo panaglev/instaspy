@@ -76,6 +76,4 @@ func main() {
 			}
 		}
 	}
-	// Naebnulsya message
-	//logger.HandleOpErrorTelegramMessage(op, err)
 }
