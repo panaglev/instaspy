@@ -4,11 +4,13 @@
 - [Description](#description)
 - [Installation](#installation)
 - [Get started](#getstarted)
-- [ToDos](#todo)
+- [Autorun](#autorun)
+- [ToDo's](#todo)
 
 ## Description
 
-**Act like you don't see me, we'll play pretend**
+**Act like you don't see me, we'll play pretend**  
+
 This tool is litteraly your ex's best friend to spy on you. Why? This tool will help you to spy on a people instagram stories. Once new image have been added you will be informed with telegram message. You will recieve image itself and line telling whom this picture is posted by(inst: *username*). Pretty minimalist huh?
 
 ## Installation 
@@ -19,3 +21,32 @@ cd instaspy
 ```
 
 ## Get started
+First of all we need to edit environment variables. Rename .env.template to .env and open it with any text editor that you like.
+```bash
+mv .env.template .env
+```
+You will see there two empty fields that you need to fill. TELEGRAM_BOT is telegram bot token and CHAT_ID is the field with chat id where your bot acting. Change those fields and save .env file, ex:
+```bash
+TELEGRAM_BOT=123123123:123123123:123123123
+CHAT_ID=123123123
+```
+
+Later we need to specify which instagram account we want to spy on. Open config.yaml file and edit first line with usernames, ex:
+```yaml
+usernames: ["miakhalifa", "jialissaonly", "letrileylive"]
+```
+
+After configuration is set up change start_and_watch.sh script permission and feel free to run app.
+```bash
+chmod +x start_and_watch.sh
+```
+
+## Autorun
+If you want app to run automatically you might use crontab to add it there. For example I use it every 10 minutes. To add job to crontab use:
+```bash
+crontab -e
+```
+After you have opened crontab file to edit add line below in the end of file:
+```bash
+*/10 * * * * cd /root/instaspy && ./start_and_watch.sh
+```
