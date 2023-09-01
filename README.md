@@ -45,7 +45,7 @@ After configuration is set up change start_and_watch.sh script permission and fe
 ```bash
 chmod +x start_and_watch.sh
 ```
-Not really sure if docker compose gonna create volume automatic so please don't be lazy to write:
+Docker compose doesn't automatically create volume so write this command to create it manually:
 ```bash
 docker volume create mydata
 ```
