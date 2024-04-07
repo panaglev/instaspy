@@ -1,1 +1,1 @@
-cmd/instaspy/app.log -diff
+cmd/instaspy/app.log filter=clear
