@@ -11,6 +11,7 @@ services:
         ipv4_address: 172.18.0.2
     volumes:
       - mydata:/exbestfriend/src/storage/
+      - ${PWD}/cmd/instaspy/app.log:/exbestfriend/cmd/instaspy/app.log
     mem_limit: 1g
     memswap_limit: 2g
     depends_on:
@@ -41,4 +42,3 @@ networks:
 
 volumes:
   mydata:
-    external: true
